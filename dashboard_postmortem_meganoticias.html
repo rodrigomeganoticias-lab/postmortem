@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Post Mortem — Meganoticias</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700;800&display=swap');
+
+:root {
+  --navy:   #0d1f3c;
+  --navy2:  #162b52;
+  --navy3:  #1e3a6e;
+  --red:    #d0021b;
+  --red2:   #ff2d41;
+  --yellow: #f5c400;
+  --green:  #18a74a;
+  --green2: #22c55e;
+  --white:  #ffffff;
+  --bg:     #f0f3f8;
+  --card:   #ffffff;
+  --border: #dde4ef;
+  --text:   #1a2640;
+  --dim:    #6b7a96;
+  --sans:   'Barlow', sans-serif;
+  --cond:   'Barlow Condensed', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  font-family: var(--sans);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.hdr {
+  background: var(--navy);
+  padding: 0;
+  border-bottom: 3px solid var(--red);
+}
+.hdr-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.hdr-brand { display: flex; align-items: center; gap: 14px; }
+.logo {
+  background: var(--red);
+  padding: 6px 12px 5px;
+  border-radius: 3px;
+}
+.logo span {
+  font-family: var(--cond);
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.hdr-title {
+  font-family: var(--cond);
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.hdr-sub { font-size: 11px; color: #8899bb; margin-top: 2px; }
+
+.hdr-right { display: flex; align-items: center; gap: 12px; }
+
+.last-update {
+  font-size: 11px;
+  color: #8899bb;
+  font-family: var(--cond);
+  letter-spacing: 0.5px;
+}
+
+.btn-refresh {
+  font-family: var(--cond);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: var(--navy2);
+  color: #8899bb;
+  border: 1px solid #2a3a5e;
+  border-radius: 4px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-refresh:hover { background: var(--navy3); color: #fff; }
+
+/* ── MAIN ── */
+.main { max-width: 1200px; margin: 0 auto; padding: 28px; }
+
+/* ── CONFIG BLOCK ── */
+.config-block {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--yellow);
+  border-radius: 0 6px 6px 0;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.config-label {
+  font-family: var(--cond);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--dim);
+  white-space: nowrap;
+}
+.config-input {
+  flex: 1;
+  min-width: 300px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.config-input:focus { border-color: var(--navy3); background: #fff; }
+.config-input::placeholder { color: #b0bad0; }
+.btn-connect {
+  font-family: var(--cond);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: var(--navy);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 9px 20px;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.btn-connect:hover { background: var(--navy3); }
+
+/* ── SUMMARY CHIPS ── */
+.summary { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.s-chip {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 20px;
+  flex: 1;
+  min-width: 140px;
+  text-align: center;
+}
+.s-chip-num {
+  font-family: var(--cond);
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+  display: block;
+}
+.s-chip-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 4px;
+  display: block;
+}
+.chip-total .s-chip-num { color: var(--navy); }
+.chip-total .s-chip-lbl { color: var(--dim); }
+.chip-ok    .s-chip-num { color: var(--green); }
+.chip-ok    .s-chip-lbl { color: var(--green); }
+.chip-err   .s-chip-num { color: var(--red2); }
+.chip-err   .s-chip-lbl { color: var(--red2); }
+.chip-pend  .s-chip-num { color: var(--yellow); }
+.chip-pend  .s-chip-lbl { color: #c4a000; }
+
+/* ── DATE FILTER ── */
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.filter-label {
+  font-family: var(--cond);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.filter-date {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 12px;
+  outline: none;
+  transition: border-color 0.2s;
+  cursor: pointer;
+}
+.filter-date:focus { border-color: var(--navy3); }
+
+.section-title {
+  font-family: var(--cond);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 12px;
+  padding-left: 2px;
+}
+
+/* ── CITY GRID ── */
+.city-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.city-card {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.city-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--border);
+  transition: background 0.2s;
+}
+.city-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(13,31,60,0.1); }
+
+.city-card.ok    { border-color: rgba(24,167,74,0.35); background: #f0fdf4; }
+.city-card.ok::before    { background: var(--green); }
+.city-card.error { border-color: rgba(208,2,27,0.3);  background: #fff5f5; }
+.city-card.error::before { background: var(--red2); }
+.city-card.pending { border-color: rgba(245,196,0,0.5); background: #fffbea; }
+.city-card.pending::before { background: var(--yellow); }
+.city-card.no-report { border-color: var(--border); background: #f8f9fc; }
+.city-card.no-report::before { background: #cbd3e3; }
+
+.city-name {
+  font-family: var(--cond);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.city-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.city-card.ok     .status-dot { background: var(--green); }
+.city-card.error  .status-dot { background: var(--red2); animation: blink 1.5s infinite; }
+.city-card.pending .status-dot { background: var(--yellow); }
+.city-card.no-report .status-dot { background: #cbd3e3; }
+
+@keyframes blink {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}
+
+.status-text {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.city-card.ok     .status-text { color: var(--green); }
+.city-card.error  .status-text { color: var(--red2); }
+.city-card.pending .status-text { color: #c4a000; }
+.city-card.no-report .status-text { color: #aab; }
+
+.city-meta {
+  font-size: 10px;
+  color: var(--dim);
+  margin-top: 6px;
+}
+
+.city-errors {
+  display: inline-block;
+  background: rgba(208,2,27,0.1);
+  color: var(--red);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 3px;
+  margin-top: 5px;
+  font-family: var(--cond);
+  letter-spacing: 0.5px;
+}
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(13,31,60,0.55);
+  backdrop-filter: blur(3px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--card);
+  border-radius: 10px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(13,31,60,0.35);
+  animation: slideUp 0.2s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.modal-hdr {
+  background: var(--navy);
+  padding: 18px 22px;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-title {
+  font-family: var(--cond);
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.modal-date { font-size: 12px; color: #8899bb; margin-top: 2px; }
+.modal-close {
+  background: none;
+  border: none;
+  color: #8899bb;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.modal-close:hover { color: #fff; }
+
+.modal-body { padding: 20px 22px; }
+
+.modal-stats {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.mstat {
+  flex: 1;
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 10px 14px;
+  text-align: center;
+}
+.mstat-num {
+  font-family: var(--cond);
+  font-size: 26px;
+  font-weight: 800;
+  display: block;
+  line-height: 1;
+}
+.mstat-lbl {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 3px;
+  display: block;
+  color: var(--dim);
+}
+.mstat-ok  .mstat-num { color: var(--green); }
+.mstat-err .mstat-num { color: var(--red2); }
+.mstat-no  .mstat-num { color: #c4a000; }
+
+.modal-section-title {
+  font-family: var(--cond);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 8px;
+}
+
+.modal-items { margin-bottom: 16px; }
+
+.modal-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  margin-bottom: 3px;
+  font-size: 12px;
+}
+.modal-item.mi-ok    { background: #f0fdf4; }
+.modal-item.mi-err   { background: #fff5f5; }
+.modal-item.mi-no    { background: #fffbea; }
+.modal-item.mi-empty { background: #f8f9fc; }
+
+.mi-num { font-family: var(--cond); font-size: 10px; color: #b0bad0; min-width: 22px; font-weight: 700; }
+.mi-name { flex: 1; font-weight: 600; color: var(--text); }
+.mi-badge {
+  font-family: var(--cond);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.mi-ok-b  { background: #dcfce7; color: #15803d; }
+.mi-err-b { background: #fee2e2; color: #b91c1c; }
+.mi-no-b  { background: #fef9c3; color: #926a00; }
+.mi-emp-b { background: #f1f5f9; color: #94a3b8; }
+
+.modal-obs {
+  background: #f8f9fc;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--navy);
+  border-radius: 0 4px 4px 0;
+  padding: 10px 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.modal-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--cond);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--navy3);
+  text-decoration: none;
+  margin-top: 14px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--navy3);
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+.modal-link:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  background: var(--card);
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: 48px 24px;
+  text-align: center;
+  grid-column: 1 / -1;
+}
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-title { font-family: var(--cond); font-size: 16px; font-weight: 700; color: var(--dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+.empty-sub { font-size: 13px; color: #b0bad0; }
+
+/* ── LOADING ── */
+.loading-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: var(--yellow);
+  width: 0%;
+  transition: width 0.3s;
+  z-index: 9999;
+}
+.loading-bar.active { animation: loadingAnim 1.5s infinite; }
+@keyframes loadingAnim {
+  0%   { width: 0%; left: 0; }
+  50%  { width: 70%; left: 0; }
+  100% { width: 0%; left: 100%; }
+}
+
+/* ── ERROR ── */
+.error-banner {
+  display: none;
+  background: #fff5f5;
+  border: 1px solid rgba(208,2,27,0.2);
+  border-left: 4px solid var(--red);
+  border-radius: 0 6px 6px 0;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: var(--red);
+}
+</style>
+</head>
+<body>
+
+<div class="loading-bar" id="loading-bar"></div>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-inner">
+    <div class="hdr-brand">
+      <div class="logo"><span>Meganoticias</span></div>
+      <div>
+        <div class="hdr-title">Dashboard Post Mortem</div>
+        <div class="hdr-sub">Monitoreo de transmisiones — 30 operaciones</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <span class="last-update" id="last-update">Sin datos</span>
+      <button class="btn-refresh" onclick="loadData()">↻ Actualizar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- CONFIG -->
+  <div class="config-block" id="config-block">
+    <span class="config-label">🔗 Google Sheet ID</span>
+    <input class="config-input" id="sheet-id-input" type="text"
+      placeholder="Pega aquí el ID de tu Google Sheet (ej: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms)"
+      value="">
+    <button class="btn-connect" onclick="connectSheet()">Conectar</button>
+  </div>
+
+  <div class="error-banner" id="error-banner"></div>
+
+  <!-- SUMMARY -->
+  <div class="summary">
+    <div class="s-chip chip-total">
+      <span class="s-chip-num" id="s-total">—</span>
+      <span class="s-chip-lbl">Reportes hoy</span>
+    </div>
+    <div class="s-chip chip-ok">
+      <span class="s-chip-num" id="s-ok">—</span>
+      <span class="s-chip-lbl">Sin errores</span>
+    </div>
+    <div class="s-chip chip-err">
+      <span class="s-chip-num" id="s-err">—</span>
+      <span class="s-chip-lbl">Con errores</span>
+    </div>
+    <div class="s-chip chip-pend">
+      <span class="s-chip-num" id="s-pend">—</span>
+      <span class="s-chip-lbl">Sin reporte</span>
+    </div>
+  </div>
+
+  <!-- FILTER -->
+  <div class="filter-row">
+    <span class="filter-label">Fecha</span>
+    <input class="filter-date" type="date" id="filter-date" onchange="renderCities()">
+    <span style="font-size:12px;color:var(--dim)" id="filter-count"></span>
+  </div>
+
+  <div class="section-title">Estado por ciudad</div>
+
+  <!-- CITY GRID -->
+  <div class="city-grid" id="city-grid">
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">Sin datos cargados</div>
+      <div class="empty-sub">Conecta tu Google Sheet para ver el estado de las ciudades</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title" id="modal-title">Ciudad</div>
+        <div class="modal-date" id="modal-date"></div>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ── CONFIGURACIÓN ──
+// Mapa: valor del formulario → nombre display
+const CITIES_MAP = {
+  "NACIONAL":           "Nacional",
+  "COLIMA":             "Colima",
+  "CULIACAN":           "Culiacán",
+  "DURANGO":            "Durango",
+  "GUADALAJARA":        "Guadalajara",
+  "GUAYMAS":            "Guaymas",
+  "HERMOSILLO":         "Hermosillo",
+  "IXTAPA_ZIHUATANEJO": "Ixtapa Zihuatanejo",
+  "LA_PAZ":             "La Paz",
+  "LEON":               "León",
+  "LOS_CABOS":          "Los Cabos",
+  "LOS_MOCHIS":         "Los Mochis",
+  "MORELIA":            "Morelia",
+  "NOGALES":            "Nogales",
+  "OBREGON_NAVOJOA":    "Obregón/Navojoa",
+  "PUEBLA":             "Puebla",
+  "QUERETARO":          "Querétaro",
+  "S_LUIS_R_COLORADO":  "S. Luis R. Colorado",
+  "SALAMANCA":          "Salamanca",
+  "SALINA_CRUZ":        "Salina Cruz",
+  "TEHUACAN":           "Tehuacán",
+  "TEPIC":              "Tepic",
+  "TOLUCA":             "Toluca",
+  "LA_LAGUNA":          "La Laguna",
+  "TUXPAN":             "Tuxpan",
+  "TUXTLA_GUTIERREZ":   "Tuxtla Gutiérrez",
+  "VERACRUZ":           "Veracruz",
+  "XALAPA":             "Xalapa",
+  "ZACATECAS":          "Zacatecas",
+  "ZAMORA_LA_PIEDAD":   "Zamora/La Piedad"
+};
+
+const PARAMS = [
+  "CORTINILLA ABRE","TEASER 3 NOTAS + 1","NOTA PROYECTADA PORTADA",
+  "NATSOUND NOTA PROYECTADA","INVITAR A WHATSAPP A COMENTAR","BUMPER AL REGRESAR",
+  "CORTINILLA CORTE","SECCIÓN EDITORIAL NAC. 100 PALABRAS","INTRO A REDACCIÓN",
+  "COMENTARIOS WHATSAPP Y RRSS","NOTA PROYECTADA II FT","BREVES LOCALES RETOMADAS",
+  "SECCIONES","BUMPER AL REGRESAR","CORTINILLA CORTE","BREVES NACIONALES",
+  "SECCIÓN DEL DÍA","COMODÍN","CORTINILLA PASE NACIONAL","PROBLEMAS CON vMix",
+  "DESCRIPCIÓN DE FALLAS"
+];
+
+// Parámetros que tienen campo de texto
+const PARAMS_WITH_TEXT = [13, 17, 18, 21]; // índices 1-based
+
+let sheetId = localStorage.getItem('pm_sheet_id') || '';
+let allData = [];
+
+// ── INIT ──
+window.onload = () => {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('filter-date').value = today;
+  if (sheetId) {
+    document.getElementById('sheet-id-input').value = sheetId;
+    loadData();
+  }
+};
+
+// ── CONNECT SHEET ──
+function connectSheet() {
+  const val = document.getElementById('sheet-id-input').value.trim();
+  if (!val) return;
+  const match = val.match(/[-\w]{25,}/);
+  if (match) {
+    sheetId = match[0];
+    localStorage.setItem('pm_sheet_id', sheetId);
+    loadData();
+  }
+}
+
+// ── LOAD DATA FROM GOOGLE SHEETS ──
+async function loadData() {
+  if (!sheetId) return;
+  showLoading(true);
+  showError('');
+  try {
+    // Public Sheet as CSV (Tab 1 = "Reportes")
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Reportes`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Error ${res.status} al acceder al Sheet`);
+    const csv = await res.text();
+    allData = parseCSV(csv);
+    document.getElementById('last-update').textContent =
+      'Actualizado: ' + new Date().toLocaleTimeString('es-MX');
+    renderCities();
+  } catch(e) {
+    showError('No se pudo cargar el Sheet. Verifica que el ID sea correcto y que el Sheet sea público (Compartir → Cualquiera con el enlace). Error: ' + e.message);
+  }
+  showLoading(false);
+}
+
+// ── PARSE CSV ──
+function parseCSV(csv) {
+  const lines = csv.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g,'').trim());
+  return lines.slice(1).map(line => {
+    const vals = parseCSVLine(line).map(v => v.replace(/^"|"$/g,'').trim());
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = vals[i] || '');
+    return obj;
+  }).filter(r => r.ciudad && r.fecha);
+}
+
+function parseCSVLine(line) {
+  const result = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
+    else cur += c;
+  }
+  result.push(cur);
+  return result;
+}
+
+// ── RENDER CITIES ──
+function renderCities() {
+  const fecha = document.getElementById('filter-date').value;
+  const grid = document.getElementById('city-grid');
+  grid.innerHTML = '';
+
+  const dayData = allData.filter(r => r.fecha === fecha);
+  const byCity = {};
+  dayData.forEach(r => { byCity[r.ciudad.toUpperCase()] = r; });
+
+  let cntOk = 0, cntErr = 0, cntPend = 0;
+
+  // Solo mostrar ciudades que tienen reporte
+  const reportedKeys = Object.keys(byCity);
+
+  if (reportedKeys.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">Sin reportes para esta fecha</div>
+        <div class="empty-sub">Las ciudades aún no han enviado su Post Mortem</div>
+      </div>`;
+    document.getElementById('s-total').textContent = 0;
+    document.getElementById('s-ok').textContent   = 0;
+    document.getElementById('s-err').textContent  = 0;
+    document.getElementById('s-pend').textContent = Object.keys(CITIES_MAP).length;
+    document.getElementById('filter-count').textContent = '0 reportes recibidos';
+    return;
+  }
+
+  // Primero los que tienen reporte
+  reportedKeys.forEach(key => {
+    const report = byCity[key];
+    const displayName = CITIES_MAP[key] || key;
+    const errCount = parseInt(report.errores) || 0;
+    const statusClass = errCount === 0 ? 'ok' : 'error';
+    const statusText  = errCount === 0 ? 'SIN ERRORES' : 'CON ERRORES';
+    if (errCount === 0) cntOk++; else cntErr++;
+
+    let metaHTML = '';
+    if (errCount > 0) metaHTML += `<div class="city-errors">✗ ${errCount} error${errCount>1?'es':''}</div>`;
+    if (report.hora) metaHTML += `<div class="city-meta">Subido: ${report.hora}</div>`;
+
+    const card = document.createElement('div');
+    card.className = `city-card ${statusClass}`;
+    card.innerHTML = `
+      <div class="city-name">${displayName}</div>
+      <div class="city-status">
+        <div class="status-dot"></div>
+        <span class="status-text">${statusText}</span>
+      </div>
+      ${metaHTML}
+    `;
+    card.onclick = () => openModal(displayName, fecha, report);
+    grid.appendChild(card);
+  });
+
+  // Pendientes al final (más pequeños)
+  Object.entries(CITIES_MAP).forEach(([key, displayName]) => {
+    if (byCity[key]) return; // ya tiene reporte
+    cntPend++;
+    const card = document.createElement('div');
+    card.className = 'city-card no-report';
+    card.style.opacity = '0.55';
+    card.innerHTML = `
+      <div class="city-name">${displayName}</div>
+      <div class="city-status">
+        <div class="status-dot"></div>
+        <span class="status-text">SIN REPORTE</span>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  document.getElementById('s-total').textContent = dayData.length;
+  document.getElementById('s-ok').textContent   = cntOk;
+  document.getElementById('s-err').textContent  = cntErr;
+  document.getElementById('s-pend').textContent = cntPend;
+  document.getElementById('filter-count').textContent =
+    `${dayData.length} reporte${dayData.length!==1?'s':''} recibido${dayData.length!==1?'s':''}`;
+}
+
+// ── MODAL ──
+function openModal(city, fecha, report) {
+  document.getElementById('modal-title').textContent = city.toUpperCase();
+  document.getElementById('modal-date').textContent = formatDate(fecha) + (report.hora ? ' · ' + report.hora : '');
+
+  const ok  = parseInt(report.sin_error) || 0;
+  const err = parseInt(report.errores)   || 0;
+  const no  = parseInt(report.no_entro)  || 0;
+
+  let bodyHTML = `
+    <div class="modal-stats">
+      <div class="mstat mstat-ok">
+        <span class="mstat-num">${ok}</span>
+        <span class="mstat-lbl">Sin error</span>
+      </div>
+      <div class="mstat mstat-err">
+        <span class="mstat-num">${err}</span>
+        <span class="mstat-lbl">Con error</span>
+      </div>
+      <div class="mstat mstat-no">
+        <span class="mstat-num">${no}</span>
+        <span class="mstat-lbl">No entró</span>
+      </div>
+    </div>
+    <div class="modal-section-title">Detalle por parámetro</div>
+    <div class="modal-items">
+  `;
+
+  PARAMS.forEach((name, i) => {
+    const num = i + 1;
+    const colKey = `p${String(num).padStart(2,'0')}`;
+    const val = (report[colKey] || '').toLowerCase().trim();
+    const hasText = PARAMS_WITH_TEXT.includes(num);
+    const textVal = report[colKey] || '';
+
+    let cls = 'mi-empty', badge = 'mi-emp-b', badgeText = 'N/D';
+    if (val === 'ok' || val === 'sin error') { cls='mi-ok';  badge='mi-ok-b';  badgeText='✓ Sin error'; }
+    else if (val === 'error' || val === 'con error') { cls='mi-err'; badge='mi-err-b'; badgeText='✗ Con error'; }
+    else if (val === 'no' || val === 'no entró' || val === 'no entro') { cls='mi-no'; badge='mi-no-b'; badgeText='— No entró'; }
+    else if (hasText && textVal) { cls='mi-empty'; badge='mi-emp-b'; badgeText=''; } // campo de texto
+
+    // Para parámetro 21 (Descripción de fallas) no hay badge, solo texto
+    const showBadge = !(num === 21);
+
+    bodyHTML += `<div class="modal-item ${cls}" style="flex-wrap:wrap;">
+      <span class="mi-num">${String(num).padStart(2,'0')}</span>
+      <span class="mi-name">${name}</span>
+      ${showBadge ? `<span class="mi-badge ${badge}">${badgeText}</span>` : ''}
+      ${hasText && textVal && val !== 'ok' && val !== 'error' && val !== 'no' ? 
+        `<div style="width:100%;padding:6px 0 2px 28px;font-size:11px;color:var(--dim);font-style:italic;">${escapeHTML(textVal)}</div>` : 
+        (hasText && textVal ? `<div style="width:100%;padding:4px 0 2px 28px;font-size:11px;color:var(--dim);font-style:italic;">${escapeHTML(textVal)}</div>` : '')
+      }
+    </div>`;
+  });
+
+  bodyHTML += `</div>`;
+
+  if (report.observaciones) {
+    bodyHTML += `
+      <div class="modal-section-title">Observaciones generales</div>
+      <div class="modal-obs">${escapeHTML(report.observaciones)}</div>`;
+  }
+
+  if (report.pdf_url) {
+    bodyHTML += `<a class="modal-link" href="${report.pdf_url}" target="_blank">↗ Ver PDF original</a>`;
+  }
+
+  document.getElementById('modal-body').innerHTML = bodyHTML;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target.id === 'modal') closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+// ── HELPERS ──
+function formatDate(d) {
+  if (!d) return '';
+  const [y,m,day] = d.split('-');
+  const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${parseInt(day)} ${months[parseInt(m)-1]} ${y}`;
+}
+function escapeHTML(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function showLoading(on) {
+  document.getElementById('loading-bar').className = 'loading-bar' + (on ? ' active' : '');
+}
+function showError(msg) {
+  const el = document.getElementById('error-banner');
+  el.style.display = msg ? 'block' : 'none';
+  el.textContent = msg;
+}
+
+// ── AUTO REFRESH cada 5 min ──
+setInterval(() => { if (sheetId) loadData(); }, 5 * 60 * 1000);
+</script>
+</body>
+</html>
